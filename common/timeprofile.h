@@ -87,8 +87,8 @@ static inline void timeprofile_stamp(timeprofile_t *tp, const char *name)
 static inline void timeprofile_display(timeprofile_t *tp)
 {
     int64_t lastutime = tp->utime;
-
-    for (int i = 0; i < zarray_size(tp->stamps); i++) {
+    int i;
+    for (i = 0; i < zarray_size(tp->stamps); i++) {
         struct timeprofile_entry *stamp;
 
         zarray_get_volatile(tp->stamps, i, &stamp);
