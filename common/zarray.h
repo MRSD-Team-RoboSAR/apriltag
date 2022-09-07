@@ -274,8 +274,8 @@ static inline int zarray_remove_value(zarray_t *za, const void *p, int shuffle)
 {
     assert(za != NULL);
     assert(p != NULL);
-    int idx;
-    for (idx = 0; idx < za->size; idx++) {
+
+    for (int idx = 0; idx < za->size; idx++) {
         if (!memcmp(p, &za->data[idx*za->el_sz], za->el_sz)) {
             zarray_remove_index(za, idx, shuffle);
             return 1;
@@ -340,8 +340,8 @@ static inline void zarray_map(zarray_t *za, void (*f)(void*))
 {
     assert(za != NULL);
     assert(f != NULL);
-    int idx;
-    for (idx = 0; idx < za->size; idx++)
+
+    for (int idx = 0; idx < za->size; idx++)
         f(&za->data[idx*za->el_sz]);
 }
 
@@ -378,8 +378,8 @@ static inline int zarray_contains(const zarray_t *za, const void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
-    int idx;
-    for (idx = 0; idx < za->size; idx++) {
+
+    for (int idx = 0; idx < za->size; idx++) {
         if (!memcmp(p, &za->data[idx*za->el_sz], za->el_sz)) {
             return 1;
         }
@@ -428,8 +428,8 @@ static inline int zarray_index_of(const zarray_t *za, const void *p)
 {
     assert(za != NULL);
     assert(p != NULL);
-    int i;
-    for (i = 0; i < za->size; i++) {
+
+    for (int i = 0; i < za->size; i++) {
         if (!memcmp(p, &za->data[i*za->el_sz], za->el_sz))
             return i;
     }
@@ -450,8 +450,8 @@ static inline void zarray_add_all(zarray_t * dest, const zarray_t * source)
     // Don't allocate on stack because el_sz could be larger than ~8 MB
     // stack size
     char *tmp = (char*)calloc(1, dest->el_sz);
-    int i;
-    for (i = 0; i < zarray_size(source); i++) {
+
+    for (int i = 0; i < zarray_size(source); i++) {
         zarray_get(source, i, tmp);
         zarray_add(dest, tmp);
    }
