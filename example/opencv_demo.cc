@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
 
     Mat frame, gray;
     while (true) {
+        printf("inside while loop \n");
         errno = 0;
         cap >> frame;
         cvtColor(frame, gray, COLOR_BGR2GRAY);
@@ -152,11 +153,21 @@ int main(int argc, char *argv[])
             printf("Unable to create the %d threads requested.\n",td->nthreads);
             exit(-1);
         }
-
+        printf("before for loop \n");
         // Draw detection outlines
         for (int i = 0; i < zarray_size(detections); i++) {
             apriltag_detection_t *det;
             zarray_get(detections, i, &det);
+            apriltag_detection_info_t *info = (apriltag_detection_info_t *)calloc(1, sizeof(apriltag_detection_info_t));
+            apriltag_pose_t *pose = (apriltag_pose_t *)calloc(1, sizeof(apriltag_pose_t));
+            info->det = det;
+            info->tagsize = 0.128;
+            info->fx = 387.852;
+            info->fy = 387.586;
+            info->cx = 319.157;
+            info->cy = 235.818;
+            printf("before estimate tag pose %lf: ",info->fx,"\n");
+            double err = estimate_tag_pose(info, pose); //！！！ there is memory leak
             line(frame, Point(det->p[0][0], det->p[0][1]),
                      Point(det->p[1][0], det->p[1][1]),
                      Scalar(0, 0xff, 0), 2);
@@ -169,7 +180,6 @@ int main(int argc, char *argv[])
             line(frame, Point(det->p[2][0], det->p[2][1]),
                      Point(det->p[3][0], det->p[3][1]),
                      Scalar(0xff, 0, 0), 2);
-
             stringstream ss;
             ss << det->id;
             String text = ss.str();
@@ -181,6 +191,11 @@ int main(int argc, char *argv[])
             putText(frame, text, Point(det->c[0]-textsize.width/2,
                                        det->c[1]+textsize.height/2),
                     fontface, fontscale, Scalar(0xff, 0x99, 0), 2);
+            if (info) free(info);
+            if (pose) {
+                free(pose->R);
+                free(pose->t);
+            }
         }
         apriltag_detections_destroy(detections);
 

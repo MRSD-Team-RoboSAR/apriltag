@@ -56,12 +56,13 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "common/pjpeg.h"
 #include "common/zarray.h"
 
+#include "apriltag_pose.h"
 #define  HAMM_HIST_MAX 10
 
 int main(int argc, char *argv[])
 {
     getopt_t *getopt = getopt_create();
-
+    printf("inside m,ain function \n");
     getopt_add_bool(getopt, 'h', "help", 0, "Show this help");
     getopt_add_bool(getopt, 'd', "debug", 0, "Enable debugging output (slow)");
     getopt_add_bool(getopt, 'q', "quiet", 0, "Reduce output");
@@ -211,13 +212,27 @@ int main(int argc, char *argv[])
             for (int i = 0; i < zarray_size(detections); i++) {
                 apriltag_detection_t *det;
                 zarray_get(detections, i, &det);
-
+                apriltag_detection_info_t *info = (apriltag_detection_info_t *)calloc(1, sizeof(apriltag_detection_info_t));
+                apriltag_pose_t *pose = (apriltag_pose_t *)calloc(1, sizeof(apriltag_pose_t));
+                info->det = det;
+                info->tagsize = 0.128;
+                info->fx = 387.852;
+                info->fy = 387.586;
+                info->cx = 319.157;
+                info->cy = 235.818;
+                printf("before estimate tag pose \n");
+                double err = estimate_tag_pose(info, pose);
                 if (!quiet)
                     printf("detection %3d: id (%2dx%2d)-%-4d, hamming %d, margin %8.3f\n",
                            i, det->family->nbits, det->family->h, det->id, det->hamming, det->decision_margin);
 
                 hamm_hist[det->hamming]++;
                 total_hamm_hist[det->hamming]++;
+                if (info) free(info);
+                if (pose) {
+                    free(pose->R);
+                    free(pose->t);
+                }
             }
 
             apriltag_detections_destroy(detections);

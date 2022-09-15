@@ -1001,6 +1001,9 @@ static int prefer_smaller(int pref, double q0, double q1)
 
 zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
 {
+    // printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+    //      im_orig->buf[0] & 0xff, im_orig->buf[1] & 0xff, im_orig->buf[2] & 0xff,
+    //      im_orig->buf[3] & 0xff, im_orig->buf[4] & 0xff, im_orig->buf[5] & 0xff);
     if (zarray_size(td->tag_families) == 0) {
         zarray_t *s = zarray_create(sizeof(apriltag_detection_t*));
         debug_print("No tag families enabled\n");
@@ -1401,12 +1404,9 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         matd_destroy(quad->H);
         matd_destroy(quad->Hinv);
     }
-
     zarray_destroy(quads);
-
     zarray_sort(detections, detection_compare_function);
     timeprofile_stamp(td->tp, "cleanup");
-
     return detections;
 }
 

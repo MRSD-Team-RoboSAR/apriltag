@@ -482,6 +482,8 @@ void estimate_pose_for_tag_homography(apriltag_detection_info_t* info, apriltag_
         MATD_EL(solution->t, i, 0) = MATD_EL(initial_pose, i, 3);
     }
     matd_destroy(initial_pose);
+    // Neural network
+        
 }
 
 /**
@@ -494,6 +496,8 @@ void estimate_tag_pose_orthogonal_iteration(
         double* err2,
         apriltag_pose_t* solution2,
         int nIters) {
+    
+    printf("Inside orthogonal iteration \n");
     double scale = info->tagsize/2.0;
     matd_t* p[4] = {
         matd_create_data(3, 1, (double[]) {-scale, scale, 0}),
@@ -501,11 +505,13 @@ void estimate_tag_pose_orthogonal_iteration(
         matd_create_data(3, 1, (double[]) {scale, -scale, 0}),
         matd_create_data(3, 1, (double[]) {-scale, -scale, 0})};
     matd_t* v[4];
+    // printf("fx after create data : %lf, fy: %lf, value: %lf",info->fx,info->fy);
+    
     for (int i = 0; i < 4; i++) {
         v[i] = matd_create_data(3, 1, (double[]) {
                 (info->det->p[i][0] - info->cx)/info->fx, (info->det->p[i][1] - info->cy)/info->fy, 1});
     }
-
+   
     estimate_pose_for_tag_homography(info, solution1);
     *err1 = orthogonal_iteration(v, p, &solution1->t, &solution1->R, 4, nIters);
     solution2->R = fix_pose_ambiguities(v, p, solution1->t, solution1->R, 4);
@@ -530,18 +536,24 @@ double estimate_tag_pose(apriltag_detection_info_t* info, apriltag_pose_t* pose)
     apriltag_pose_t pose1, pose2;
     estimate_tag_pose_orthogonal_iteration(info, &err1, &pose1, &err2, &pose2, 50);
     if (err1 <= err2) {
-        pose->R = pose1.R;
-        pose->t = pose1.t;
-        if (pose2.R) {
+        if(pose1.R)
+            pose->R = pose1.R;
+        if(pose1.t)
+            pose->t = pose1.t;
+        if (pose2.R) 
+            matd_destroy(pose2.R);
+        if(pose2.t)
             matd_destroy(pose2.t);
-        }
-        matd_destroy(pose2.R);
         return err1;
     } else {
-        pose->R = pose2.R;
-        pose->t = pose2.t;
-        matd_destroy(pose1.R);
-        matd_destroy(pose1.t);
+        if(pose2.R)
+            pose->R = pose2.R;
+        if(pose2.t)
+            pose->t = pose2.t;
+        if(pose1.R)
+            matd_destroy(pose1.R);
+        if(pose1.t)
+            matd_destroy(pose1.t);
         return err2;
     }
 }
